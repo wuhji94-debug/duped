@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Be My Valentine 💕</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+    font-family: "Comic Sans MS", "Poppins", cursive;
+  }
+
+  body {
+    margin: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, #ffd6e8, #ffeef6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 25px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    text-align: center;
+    width: 360px;
+    height: 360px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  h1 {
+    color: #ff4d88;
+    margin-bottom: 10px;
+  }
+
+  p {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 20px;
+  }
+
+  button {
+    border: none;
+    border-radius: 30px;
+    padding: 12px 25px;
+    font-size: 18px;
+    cursor: pointer;
+    position: absolute;
+  }
+
+  /* 💖 GENTLE PULSE */
+  #yes {
+    background: #ff4d88;
+    color: white;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    z-index: 2;
+    animation: pulse 2.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%   { transform: translateX(-50%) scale(1); }
+    50%  { transform: translateX(-50%) scale(1.08); }
+    100% { transform: translateX(-50%) scale(1); }
+  }
+
+  #no {
+    background: #ddd;
+    color: #555;
+    left: 140px;
+    top: 150px;
+  }
+
+  .shake {
+    animation: shake 0.25s;
+  }
+
+  @keyframes shake {
+    0% { transform: scale(var(--scale)) translateX(0); }
+    25% { transform: scale(var(--scale)) translateX(-2px); }
+    50% { transform: scale(var(--scale)) translateX(2px); }
+    75% { transform: scale(var(--scale)) translateX(-2px); }
+    100% { transform: scale(var(--scale)) translateX(0); }
+  }
+
+  .celebrate {
+    display: none;
+    text-align: center;
+  }
+
+  .hearts {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .heart {
+    position: absolute;
+    font-size: 20px;
+    animation: float 5s linear infinite;
+  }
+
+  @keyframes float {
+    from { transform: translateY(100vh); }
+    to { transform: translateY(-10vh); }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- 🎶 Background music iframe (starts muted) -->
+<iframe
+  id="bg-music"
+  width="0"
+  height="0"
+  src="https://www.youtube.com/embed/Ma1m1_0EirI?autoplay=1&loop=1&playlist=Ma1m1_0EirI&controls=0&mute=1"
+  allow="autoplay">
+</iframe>
+
+<div class="card" id="card">
+  <h1>Waleh 💕</h1>
+  <p>Will you be my Valentine?</p>
+
+  <button id="yes">Yes 💖</button>
+  <button id="no">No 🙈</button>
+</div>
+
+<div class="card celebrate" id="celebrate">
+  <h1>YAY!!! 🥰💘</h1>
+  <p>You just made me the happiest person ever 💖</p>
+</div>
+
+<div class="hearts" id="hearts"></div>
+
+<script>
+  const noBtn = document.getElementById("no");
+  const yesBtn = document.getElementById("yes");
+  const card = document.getElementById("card");
+  const celebrate = document.getElementById("celebrate");
+  const heartsContainer = document.getElementById("hearts");
+  const musicFrame = document.getElementById("bg-music");
+
+  let x = 140;
+  let y = 150;
+  let scale = 1;
+  let musicStarted = false;
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  /* 🔊 GUARANTEED MUSIC START */
+  function startMusic() {
+    if (musicStarted) return;
+    musicStarted = true;
+
+    musicFrame.src =
+      "https://www.youtube.com/embed/Ma1m1_0EirI?autoplay=1&loop=1&playlist=Ma1m1_0EirI&controls=0";
+
+    document.removeEventListener("click", startMusic);
+  }
+
+  document.addEventListener("click", startMusic, { once: true });
+
+  /* 🏃 NO RUNS AWAY FROM CURSOR */
+  document.addEventListener("mousemove", e => {
+    const btnRect = noBtn.getBoundingClientRect();
+
+    const bx = btnRect.left + btnRect.width / 2;
+    const by = btnRect.top + btnRect.height / 2;
+
+    const dx = bx - e.clientX;
+    const dy = by - e.clientY;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist < 120) {
+      const angle = Math.atan2(dy, dx) + (Math.random() - 0.5);
+      const speed = 18 + Math.random() * 10;
+
+      x += Math.cos(angle) * speed;
+      y += Math.sin(angle) * speed;
+
+      scale -= 0.002;
+      if (scale < 0.5) scale = 0.5;
+
+      x = clamp(x, 0, card.clientWidth - noBtn.offsetWidth);
+      y = clamp(y, 0, card.clientHeight - noBtn.offsetHeight);
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+      noBtn.style.transform = `scale(${scale})`;
+      noBtn.style.setProperty("--scale", scale);
+
+      noBtn.classList.add("shake");
+      setTimeout(() => noBtn.classList.remove("shake"), 150);
+    }
+  });
+
+  yesBtn.addEventListener("click", () => {
+    card.style.display = "none";
+    celebrate.style.display = "block";
+    startHearts();
+  });
+
+  function startHearts() {
+    for (let i = 0; i < 40; i++) {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.innerHTML = "💖";
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.fontSize = (16 + Math.random() * 20) + "px";
+      heart.style.animationDuration = (3 + Math.random() * 3) + "s";
+      heartsContainer.appendChild(heart);
+      setTimeout(() => heart.remove(), 6000);
+    }
+  }
+</script>
+
+</body>
+</html>
