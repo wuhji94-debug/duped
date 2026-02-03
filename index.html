@@ -13,16 +13,7 @@ body {
   text-align: center;
 }
 
-/* Hidden YouTube player */
-#player {
-  position: fixed;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Sound hint */
+/* 🔊 Sound hint */
 #soundHint {
   position: fixed;
   bottom: 15px;
@@ -33,7 +24,7 @@ body {
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 14px;
-  z-index: 1500;
+  z-index: 3000;
   animation: pulse 1.5s infinite;
 }
 
@@ -164,9 +155,8 @@ button {
 
 <body>
 
-<!-- YouTube Player -->
-<div id="player"></div>
-
+<!-- 🎵 Background Music -->
+<audio id="bgMusic" src="music.mp3" preload="auto" loop></audio>
 <div id="soundHint">🔊 Tap anywhere to play sound</div>
 
 <canvas id="fireworks"></canvas>
@@ -193,41 +183,18 @@ button {
   </div>
 </div>
 
-<!-- YouTube API -->
-<script src="https://www.youtube.com/iframe_api"></script>
-
 <script>
-let player;
-let soundEnabled = false;
-
-/* YouTube setup */
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('player', {
-    videoId: 'Ma1m1_0EirI',
-    playerVars: {
-      autoplay: 1,
-      loop: 1,
-      playlist: 'Ma1m1_0EirI',
-      controls: 0,
-      mute: 1
-    },
-    events: {
-      onReady: e => e.target.playVideo()
-    }
-  });
+/* 🔊 MUSIC — starts on first tap (required by browser) */
+const music = document.getElementById("bgMusic");
+function enableSound() {
+  music.volume = 0.6;
+  music.play().catch(() => {});
+  document.getElementById("soundHint").remove();
+  document.removeEventListener("click", enableSound);
 }
+document.addEventListener("click", enableSound);
 
-/* Enable sound on first tap */
-document.addEventListener("click", () => {
-  if (player && !soundEnabled) {
-    player.unMute();
-    player.setVolume(60);
-    soundEnabled = true;
-    document.getElementById("soundHint").remove();
-  }
-}, { once: true });
-
-/* Game logic */
+/* ❤️ GAME */
 let love = 0;
 
 function spawnHeart() {
@@ -252,19 +219,19 @@ function spawnHeart() {
 setTimeout(() => setInterval(spawnHeart, 700), 2000);
 setTimeout(() => document.getElementById("instruction").remove(), 4500);
 
-/* Runaway NO */
+/* 😈 RUNAWAY NO */
 document.getElementById("noBtn").addEventListener("mouseenter", e => {
   e.target.style.transform =
     `translate(${Math.random()*300-150}px, ${Math.random()*200-100}px)`;
 });
 
-/* YES */
+/* 💍 YES */
 function handleYes() {
   document.getElementById("loveMessage").style.opacity = 1;
   startFireworks();
 }
 
-/* Fireworks */
+/* 🎆 FIREWORKS */
 const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 canvas.width = innerWidth;
