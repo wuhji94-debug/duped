@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>For You 💖</title>
 
 <style>
@@ -11,6 +12,7 @@ body {
   font-family: "Comic Sans MS", cursive;
   background: radial-gradient(circle, #ffb6c1, #ff69b4);
   text-align: center;
+  touch-action: manipulation;
 }
 
 /* 🔊 Sound hint */
@@ -29,9 +31,9 @@ body {
 }
 
 @keyframes pulse {
-  0% { opacity: 0.5; }
+  0% { opacity: .5; }
   50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  100% { opacity: .5; }
 }
 
 /* Instruction */
@@ -40,13 +42,18 @@ body {
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,.95);
   color: #ff1493;
   padding: 22px 30px;
   font-size: 26px;
   border-radius: 18px;
   animation: fadeOut 4s forwards;
   z-index: 1200;
+}
+
+@keyframes fadeOut {
+  0%,70% { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; }
 }
 
 /* HUD */
@@ -63,7 +70,7 @@ body {
 #bar {
   width: 320px;
   height: 18px;
-  background: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,.4);
   border-radius: 10px;
   overflow: hidden;
   margin-top: 8px;
@@ -73,7 +80,7 @@ body {
   width: 0%;
   height: 100%;
   background: red;
-  transition: width 0.3s;
+  transition: width .3s;
 }
 
 /* Hearts */
@@ -84,17 +91,17 @@ body {
   animation: float 6s linear infinite;
   z-index: 800;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+  .heart { font-size: 42px; }
 }
 
 @keyframes float {
   from { transform: translateY(110vh); }
-  to   { transform: translateY(-120px); }
-}
-
-@keyframes fadeOut {
-  0% { opacity: 1; }
-  70% { opacity: 1; }
-  100% { opacity: 0; pointer-events: none; }
+  to { transform: translateY(-120px); }
 }
 
 /* Final Screen */
@@ -102,7 +109,7 @@ body {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0,0,0,.75);
   color: white;
   z-index: 2000;
 }
@@ -155,7 +162,6 @@ button {
 
 <body>
 
-<!-- 🎵 Background Music -->
 <audio id="bgMusic" src="music.mp3" preload="auto" loop></audio>
 <div id="soundHint">🔊 Tap anywhere to play sound</div>
 
@@ -184,15 +190,18 @@ button {
 </div>
 
 <script>
-/* 🔊 MUSIC — starts on first tap (required by browser) */
+/* 🔊 MUSIC */
 const music = document.getElementById("bgMusic");
 function enableSound() {
   music.volume = 0.6;
-  music.play().catch(() => {});
+  music.play().catch(()=>{});
   document.getElementById("soundHint").remove();
   document.removeEventListener("click", enableSound);
 }
 document.addEventListener("click", enableSound);
+
+/* 🚫 Prevent scroll on mobile */
+document.addEventListener("touchmove", e => e.preventDefault(), { passive:false });
 
 /* ❤️ GAME */
 let love = 0;
@@ -201,10 +210,12 @@ function spawnHeart() {
   const h = document.createElement("div");
   h.className = "heart";
   h.textContent = "❤️";
-  h.style.left = Math.random() * (window.innerWidth - 40) + "px";
-  h.style.animationDuration = (4 + Math.random() * 4) + "s";
+  h.style.left = Math.random() * (innerWidth - 40) + "px";
+  h.style.animationDuration = (4 + Math.random()*4) + "s";
 
-  h.onclick = () => {
+  const collect = e => {
+    e.preventDefault();
+    if (navigator.vibrate) navigator.vibrate(20);
     love += 10;
     if (love > 100) love = 100;
     document.getElementById("fill").style.width = love + "%";
@@ -212,23 +223,42 @@ function spawnHeart() {
     if (love === 100) document.getElementById("final").style.display = "block";
   };
 
+  h.addEventListener("click", collect);
+  h.addEventListener("touchstart", collect, { passive:false });
+
   document.body.appendChild(h);
-  setTimeout(() => h.remove(), 9000);
+  setTimeout(()=>h.remove(),9000);
 }
 
-setTimeout(() => setInterval(spawnHeart, 700), 2000);
-setTimeout(() => document.getElementById("instruction").remove(), 4500);
+setTimeout(()=>setInterval(spawnHeart,700),2000);
+setTimeout(()=>document.getElementById("instruction").remove(),4500);
 
 /* 😈 RUNAWAY NO */
-document.getElementById("noBtn").addEventListener("mouseenter", e => {
-  e.target.style.transform =
-    `translate(${Math.random()*300-150}px, ${Math.random()*200-100}px)`;
-});
+noBtn.addEventListener("mouseenter",()=>moveNo());
+noBtn.addEventListener("touchstart",()=>moveNo());
+
+function moveNo(){
+  noBtn.style.transform =
+    `translate(${Math.random()*300-150}px,${Math.random()*200-100}px)`;
+}
+
+/* 💬 WhatsApp */
+function sendWhatsAppResponse() {
+  const number = "97472149940";
+  const message =
+    "I said YES 💖\nMy existence in your life is a blessing from God ✨";
+  window.open(
+    "https://wa.me/" + number + "?text=" + encodeURIComponent(message),
+    "_blank"
+  );
+}
 
 /* 💍 YES */
 function handleYes() {
   document.getElementById("loveMessage").style.opacity = 1;
+  if (navigator.vibrate) navigator.vibrate(40);
   startFireworks();
+  setTimeout(sendWhatsAppResponse,1200);
 }
 
 /* 🎆 FIREWORKS */
@@ -237,25 +267,17 @@ const ctx = canvas.getContext("2d");
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 
-let particles = [];
-let active = false;
+let particles = [], active = false;
 
-function startFireworks() {
-  active = true;
-  launch();
-}
+function startFireworks(){ active = true; launch(); }
 
-function launch() {
-  if (!active) return;
-  const x = Math.random()*canvas.width;
-  const y = Math.random()*canvas.height*0.5;
-  for (let i=0;i<100;i++){
-    const a=Math.random()*Math.PI*2;
-    const s=Math.random()*6+2;
-    particles.push({
-      x,y,dx:Math.cos(a)*s,dy:Math.sin(a)*s,
-      life:80,color:`hsl(${Math.random()*360},100%,60%)`
-    });
+function launch(){
+  if(!active) return;
+  const x=Math.random()*canvas.width, y=Math.random()*canvas.height*.5;
+  for(let i=0;i<100;i++){
+    const a=Math.random()*Math.PI*2, s=Math.random()*6+2;
+    particles.push({x,y,dx:Math.cos(a)*s,dy:Math.sin(a)*s,life:80,
+      color:`hsl(${Math.random()*360},100%,60%)`});
   }
   setTimeout(launch,450);
 }
@@ -263,16 +285,18 @@ function launch() {
 function animate(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   particles.forEach(p=>{
-    p.x+=p.dx; p.y+=p.dy; p.dy+=0.05; p.life--;
+    p.x+=p.dx; p.y+=p.dy; p.dy+=.05; p.life--;
     ctx.beginPath();
     ctx.arc(p.x,p.y,2.5,0,Math.PI*2);
     ctx.fillStyle=p.color;
     ctx.fill();
   });
-  particles = particles.filter(p=>p.life>0);
+  particles=particles.filter(p=>p.life>0);
   requestAnimationFrame(animate);
 }
 animate();
+
+onresize=()=>{canvas.width=innerWidth;canvas.height=innerHeight};
 </script>
 
 </body>
